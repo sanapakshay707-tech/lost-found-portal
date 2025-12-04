@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Report Found Item</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top, #2a2a40, #1e1e2f);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      min-height: 100vh;
+    }
+
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    form {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 400px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-weight: bold;
+      font-size: 1rem;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <h2>🔍 Report Found Item</h2>
+
+  <form id="foundForm">
+    <input type="text" name="title" placeholder="Item Title" required />
+    <input type="email" name="email" placeholder="Your Email" required />
+    <textarea name="reason" placeholder="Describe the item and where you found it" required></textarea>
+    <button type="submit">Submit Found Report</button>
+  </form>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("Please log in first");
+      window.location.href = 'login.html';
+    }
+
+    document.getElementById('foundForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+
+      const res = await fetch('http://localhost:3000/api/claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        },
+        body: JSON.stringify({
+          title: form.title.value,
+          email: form.email.value,
+          reason: form.reason.value
+        })
+      });
+
+      const data = await res.json();
+      alert(data.message);
+    });
+  </script>
+</body>
+</html>

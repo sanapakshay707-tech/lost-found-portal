@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Claims</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top, #2a2a40, #1e1e2f);
+      color: #fff;
+      padding: 60px 20px;
+      min-height: 100vh;
+    }
+
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+    }
+
+    .claim {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .claim strong {
+      color: #00c6ff;
+    }
+
+    .status {
+      font-weight: bold;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h2>📋 My Claims</h2>
+  <div id="claimsContainer"></div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("Please log in first");
+      window.location.href = 'login.html';
+    }
+
+    async function loadMyClaims() {
+      const res = await fetch('http://localhost:3000/api/my-claims', {
+        headers: { 'Authorization': token }
+      });
+
+      const claims = await res.json();
+      const container = document.getElementById('claimsContainer');
+
+      claims.forEach(claim => {
+        const div = document.createElement('div');
+        div.className = 'claim';
+        div.innerHTML = `
+          <strong>${claim.title}</strong><br>
+          ${claim.reason}<br>
+          <span class="status">Status: ${claim.status}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    loadMyClaims();
+  </script>
+</body>
+</html>

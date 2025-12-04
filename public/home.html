@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Dashboard | Lost & Found</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #1e1e2f;
+      color: #fff;
+      padding: 20px;
+    }
+    h2 {
+      color: #00c6ff;
+      margin-bottom: 20px;
+    }
+    form {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 400px;
+      margin-bottom: 30px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: #fff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      text-align: left;
+    }
+    th {
+      background: rgba(0, 198, 255, 0.2);
+    }
+    .logout {
+      background: #ff9800;
+      color: #fff;
+      margin-top: 20px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>📋 User Dashboard</h2>
+  <p>Submit a new claim or view your claim history.</p>
+<form id="claimForm" enctype="multipart/form-data">
+  <input type="text" id="item" placeholder="Item name" required />
+  <textarea id="description" placeholder="Description" required></textarea>
+  <input type="file" id="image" accept="image/*" />
+  <button type="submit">Submit Claim</button>
+</form>
+
+
+const res = await fetch('http://localhost:3000/api/my-claims', {
+  headers: { Authorization: `Bearer ${token}` }
+});
+
+  <!-- Claim history table -->
+  <table id="claimsTable">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Description</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button class="logout" onclick="logout()">Logout</button>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    // Protect page
+    if (!token || role !== 'user') {
+      alert("Access denied. Users only.");
+      window.location.href = "login.html";
+    }
+
+    // Submit new claim
+    document.getElementById('claimForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const item = document.getElementById('item').value;
+      const description = document.getElementById('description').value;
+
+      try {
+        const res = await fetch('http://localhost:3000/api/claim', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ item, description })
+        });
+
+        const data = await res.json();
+        alert(data.message);
+        fetchClaims(); // refresh table
+      } catch (err) {
+        console.error("❌ Error submitting claim:", err);
+        alert("Failed to submit claim.");
+      }
+    });
+
+    // Fetch user's claims
+    async function fetchClaims() {
+      try {
+        const res = await fetch('http://localhost:3000/api/my-claims', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const claims = await res.json();
+
+        const tbody = document.querySelector('#claimsTable tbody');
+        tbody.innerHTML = '';
+
+        claims.forEach(claim => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${claim.item}</td>
+            <td>${claim.description || ''}</td>
+            <td>${claim.status}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error("❌ Error fetching claims:", err);
+        alert("Failed to load claims.");
+      }
+    }
+
+    // Logout
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      window.location.href = "login.html";
+    }
+
+    // Initial load
+    fetchClaims();
+  </script>
+</body>
+</html>
