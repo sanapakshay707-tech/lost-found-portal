@@ -2,94 +2,149 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Submit Claim | Lost & Found</title>
+  <title>Submit Claim | Lost & Found Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     body {
+      margin: 0;
       font-family: 'Inter', sans-serif;
-      background: #1e1e2f;
+      background: linear-gradient(135deg, #1e1e2f, #2a2a40);
       color: #fff;
-      padding: 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
     }
+
     h2 {
-      color: #00c6ff;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      background: linear-gradient(90deg, #36d1dc, #5b86e5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    form {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 500px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+      transform-style: preserve-3d;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    form:hover {
+      transform: rotateY(6deg) rotateX(3deg) scale(1.02);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-weight: bold;
+      font-size: 1rem;
+      background: linear-gradient(135deg, #36d1dc, #5b86e5);
+      color: white;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav {
       margin-bottom: 20px;
     }
-    form {
-      background: rgba(255,255,255,0.05);
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 500px;
-    }
-    input, textarea, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: none;
-      font-size: 14px;
-    }
-    textarea { resize: vertical; }
-    button {
-      background: #00c6ff;
-      color: #fff;
+
+    .nav a {
+      color: #36d1dc;
+      text-decoration: none;
       font-weight: bold;
-      cursor: pointer;
+      margin: 0 15px;
     }
-    .logout {
-      background: #ff9800;
-      margin-top: 20px;
+
+    .nav a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h2>📝 Submit a Claim</h2>
-  <form id="claimForm" enctype="multipart/form-data">
-    <input type="text" id="item" placeholder="Item name" required />
-    <textarea id="description" placeholder="Description" required></textarea>
-    <input type="file" id="image" accept="image/*" />
+  <div class="nav">
+    <a href="feed.html">📜 Feed</a>
+    <a href="home.html">🏠 Home</a>
+    <a href="login.html" onclick="logout()">🚪 Logout</a>
+  </div>
+
+  <h2>➕ Submit a Claim</h2>
+
+  <form id="claimForm">
+    <input type="text" name="title" placeholder="Title (e.g., Lost Wallet)" required />
+    <textarea name="description" placeholder="Describe the item..." required></textarea>
+    <input type="text" name="imageUrl" placeholder="Image URL (optional)" />
     <button type="submit">Submit Claim</button>
   </form>
 
-  <button class="logout" onclick="logout()">Logout</button>
-
   <script>
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert("You must be logged in to submit a claim.");
-      window.location.href = "login.html";
-    }
-
     document.getElementById('claimForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const formData = new FormData();
-      formData.append('item', document.getElementById('item').value);
-      formData.append('description', document.getElementById('description').value);
-      if (document.getElementById('image').files[0]) {
-        formData.append('image', document.getElementById('image').files[0]);
-      }
+      const form = e.target;
+      const title = form.title.value.trim();
+      const description = form.description.value.trim();
+      const imageUrl = form.imageUrl.value.trim();
+      const token = localStorage.getItem('token');
 
       try {
-        const res = await fetch('http://localhost:3000/api/claim', {
+        const res = await fetch('http://localhost:3000/api/claims', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ title, description, imageUrl })
         });
+
         const data = await res.json();
-        alert(data.message);
-        if (res.status === 201) {
-          window.location.href = "home.html"; // redirect back to dashboard
+
+        if (res.ok) {
+          alert(data.message);
+          window.location.href = 'feed.html';
+        } else {
+          alert(data.message || 'Failed to submit claim');
         }
       } catch (err) {
-        console.error("❌ Error submitting claim:", err);
-        alert("Failed to submit claim.");
+        console.error("❌ Claim submit error:", err);
+        alert("Something went wrong. Please try again.");
       }
     });
 
     function logout() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-      window.location.href = "login.html";
+      localStorage.clear();
+      alert("Logged out successfully");
     }
   </script>
 </body>

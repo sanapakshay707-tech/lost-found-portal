@@ -4,24 +4,33 @@ const cors = require('cors');
 const path = require('path');
 
 const authRoutes = require('./routes/auth');
-const claimRoutes = require('./routes/claims');
+const claimRoutes = require('./routes/claim'); // if you have claims
 
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Static (for uploads if using local storage)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(express.static(path.join(__dirname, 'public')));
 
-mongoose.connect('mongodb+srv://<username>:<password>@cluster0.mongodb.net/lostfound', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log("✅ MongoDB connected"))
-.catch(err => console.error("❌ MongoDB error:", err));
+// MongoDB connection — replace with your actual URI
+const MONGO_URI = 'mongodb+srv://sanapakshay:Akshayo7123@cluster0.napcqby.mongodb.net/?appName=Cluster0';
 
+
+mongoose
+  .connect(MONGO_URI)
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch((err) => console.error('❌ MongoDB error:', err));
+
+// Routes
 app.use('/api', authRoutes);
-app.use('/api', claimRoutes);
+app.use('/api', claimRoutes); // ensure the file exists and exports a router
 
-app.get('/', (req, res) => res.send('Lost & Found backend running...'));
+// Health check
+app.get('/', (req, res) => res.send('Lost & Found API is running'));
 
-app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));

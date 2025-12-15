@@ -6,101 +6,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: radial-gradient(circle at top, #2a2a40, #1e1e2f);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 20px;
-      min-height: 100vh;
-    }
-
-    h2 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-      background: linear-gradient(90deg, #00c6ff, #0072ff);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    form {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      padding: 30px;
-      width: 100%;
-      max-width: 400px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border-radius: 10px;
-      border: none;
-      font-size: 1rem;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      font-weight: bold;
-      font-size: 1rem;
-      background: linear-gradient(135deg, #00c6ff, #0072ff);
-      color: white;
-      cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    button:hover {
-      transform: translateY(-3px) scale(1.03);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
-    }
-
-    .link {
-      margin-top: 15px;
-      text-align: center;
-      color: #ccc;
-    }
-
-    .link a {
-      color: #00c6ff;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .link a:hover {
-      text-decoration: underline;
-    }
+    body { margin: 0; font-family: 'Inter', sans-serif; background: radial-gradient(circle at top, #2a2a40, #1e1e2f); color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 60px 20px; }
+    h2 { font-size: 2.5rem; margin-bottom: 20px; background: linear-gradient(90deg, #36d1dc, #5b86e5); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    form { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 30px; width: 100%; max-width: 400px; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: none; font-size: 1rem; }
+    button { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; font-size: 1rem; background: linear-gradient(135deg, #36d1dc, #5b86e5); color: white; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    button:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 12px 30px rgba(0,0,0,0.5); }
+    .link { margin-top: 15px; text-align: center; color: #ccc; }
+    .link a { color: #36d1dc; text-decoration: none; font-weight: bold; }
+    .link a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <h2>🔐 Login</h2>
-
-  <form id="loginForm">
-    <input type="email" name="email" id="email" placeholder="Email" required />
-    <input type="password" name="password" id="password" placeholder="Password" required />
-    <button type="submit">Login</button>
-    <div class="link">
-      Don't have an account? <a href="register.html">Register here</a>
-    </div>
-  </form>
+  <div>
+    <h2>🔐 Login</h2>
+    <form id="loginForm">
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+      <div class="link">New here? <a href="register.html">Register</a></div>
+    </form>
+  </div>
 
   <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+      const form = e.target;
+      const email = form.email.value.trim();
+      const password = form.password.value;
 
       try {
         const res = await fetch('http://localhost:3000/api/login', {
@@ -114,19 +47,18 @@
         if (res.ok) {
           localStorage.setItem('token', data.token);
           localStorage.setItem('role', data.role);
+          localStorage.setItem('name', data.name);
+
           alert(data.message);
 
-          if (data.role === 'admin') {
-            window.location.href = 'admin-dashboard.html';
-          } else {
-            window.location.href = 'home.html';
-          }
+         window.location.href = 'home.html';
+          
         } else {
-          alert(data.message);
+          alert(data.message || 'Login failed');
         }
       } catch (err) {
-        console.error("❌ Login error:", err);
-        alert("Something went wrong. Please try again.");
+        console.error('❌ Login error:', err);
+        alert('Something went wrong. Please try again.');
       }
     });
   </script>

@@ -1,13 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-  <h2>📰 Lost & Found Feed</h2>
-<p>Browse all recent claims submitted by users.</p>
-
-<input type="text" id="searchInput" placeholder="Search by item..." style="padding:10px; width:250px; border-radius:8px; border:none; margin-bottom:20px;" />
-<button onclick="searchFeed()" style="padding:10px 20px; border:none; border-radius:8px; background:#00c6ff; color:#fff; font-weight:bold;">Search</button>
-
-<div class="feed" id="feedContainer"></div>
-
 <head>
   <meta charset="UTF-8" />
   <title>Lost & Found Feed</title>
@@ -15,113 +7,140 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     body {
+      margin: 0;
       font-family: 'Inter', sans-serif;
-      background: #1e1e2f;
+      background: linear-gradient(135deg, #1e1e2f, #2a2a40);
       color: #fff;
-      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
     }
+
     h2 {
-      color: #00c6ff;
-      margin-bottom: 20px;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      background: linear-gradient(90deg, #ff6a00, #ee0979);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .feed {
+
+    #feed {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      gap: 25px;
+      width: 100%;
+      max-width: 1200px;
     }
-    .card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+
+    .claim-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      transform-style: preserve-3d;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
     }
-    .card h3 {
+
+    .claim-card:hover {
+      transform: rotateY(8deg) rotateX(4deg) scale(1.03);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+    }
+
+    .claim-card h3 {
       margin: 0 0 10px;
-      color: #00c6ff;
+      font-size: 1.4rem;
+      color: #ff6a00;
     }
-    .card p {
-      margin: 5px 0;
+
+    .claim-card p {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      color: #ccc;
     }
-    .logout {
-      background: #ff9800;
-      color: #fff;
-      margin-top: 20px;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
+
+    .claim-card small {
+      display: block;
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    .no-claims {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #bbb;
+      margin-top: 40px;
+    }
+
+    .nav {
+      margin-bottom: 20px;
+    }
+
+    .nav a {
+      color: #ff6a00;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 0 15px;
+    }
+
+    .nav a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h2>📰 Lost & Found Feed</h2>
-  <p>Browse all recent claims submitted by users.</p>
-  card.innerHTML = `
-  <h3>${claim.item}</h3>
-  <p><strong>Description:</strong> ${claim.description || ''}</p>
-  <p><strong>Status:</strong> ${claim.status}</p>
-  <p><strong>User:</strong> ${claim.user?.name || 'Anonymous'}</p>
-  ${claim.image ? `<img src="http://localhost:3000/uploads/${claim.image}" style="max-width:100%; border-radius:8px; margin-top:10px;" />` : ''}
-`;
+  <div class="nav">
+    <a href="home.html">🏠 Home</a>
+    <a href="claim.html">➕ Submit Claim</a>
+    <a href="login.html" onclick="logout()">🚪 Logout</a>
+  </div>
 
-
-  <div class="feed" id="feedContainer"></div>
-
-  <button class="logout" onclick="logout()">Logout</button>
+  <h2>📜 Lost & Found Feed</h2>
+  <div id="feed"></div>
+  <div id="noClaims" class="no-claims" style="display:none;">No claims yet. Be the first to report!</div>
 
   <script>
-  const token = localStorage.getItem('token');
+    async function loadClaims() {
+      try {
+        const res = await fetch('http://localhost:3000/api/claims');
+        const data = await res.json();
 
-  if (!token) {
-    alert("You must be logged in to view the feed.");
-    window.location.href = "login.html";
-  }
+        if (res.ok) {
+          const feed = document.getElementById('feed');
+          const noClaims = document.getElementById('noClaims');
 
-  async function fetchFeed(query = "") {
-    try {
-      const url = query 
-        ? `http://localhost:3000/api/search?q=${encodeURIComponent(query)}`
-        : `http://localhost:3000/api/feed`;
-
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const claims = await res.json();
-
-      const container = document.getElementById('feedContainer');
-      container.innerHTML = '';
-
-      claims.forEach(claim => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <h3>${claim.item}</h3>
-          <p><strong>Description:</strong> ${claim.description || ''}</p>
-          <p><strong>Status:</strong> ${claim.status}</p>
-          <p><strong>User:</strong> ${claim.user?.name || 'Anonymous'}</p>
-        `;
-        container.appendChild(card);
-      });
-    } catch (err) {
-      console.error("❌ Error fetching feed:", err);
-      alert("Failed to load feed.");
+          if (!data.claims || data.claims.length === 0) {
+            feed.innerHTML = "";
+            noClaims.style.display = "block";
+          } else {
+            noClaims.style.display = "none";
+            feed.innerHTML = data.claims.map(c => `
+              <div class="claim-card">
+                <h3>${c.title}</h3>
+                <p>${c.description}</p>
+                ${c.imageUrl ? `<img src="${c.imageUrl}" alt="Claim image" style="width:100%;border-radius:10px;margin-top:10px;">` : ""}
+                <small>Status: ${c.status} | Posted on ${new Date(c.createdAt).toLocaleDateString()}</small>
+              </div>
+            `).join('');
+          }
+        } else {
+          alert(data.message || "Failed to load claims");
+        }
+      } catch (err) {
+        console.error("❌ Feed error:", err);
+        alert("Failed to load claims");
+      }
     }
-  }
 
-  function searchFeed() {
-    const query = document.getElementById('searchInput').value;
-    fetchFeed(query);
-  }
+    function logout() {
+      localStorage.clear();
+      alert("Logged out successfully");
+    }
 
-  function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    window.location.href = "login.html";
-  }
-
-  // Initial load
-  fetchFeed();
-</script>
-
+    loadClaims();
+  </script>
 </body>
 </html>

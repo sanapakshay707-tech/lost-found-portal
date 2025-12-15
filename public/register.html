@@ -18,7 +18,6 @@
       padding: 60px 20px;
       min-height: 100vh;
     }
-
     h2 {
       font-size: 2.5rem;
       margin-bottom: 20px;
@@ -27,7 +26,6 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-
     form {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -38,7 +36,6 @@
       backdrop-filter: blur(10px);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
-
     input {
       width: 100%;
       padding: 12px;
@@ -47,7 +44,6 @@
       border: none;
       font-size: 1rem;
     }
-
     button {
       width: 100%;
       padding: 12px;
@@ -60,24 +56,20 @@
       cursor: pointer;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-
     button:hover {
       transform: translateY(-3px) scale(1.03);
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
     }
-
     .link {
       margin-top: 15px;
       text-align: center;
       color: #ccc;
     }
-
     .link a {
       color: #ff6a00;
       text-decoration: none;
       font-weight: bold;
     }
-
     .link a:hover {
       text-decoration: underline;
     }
@@ -100,15 +92,15 @@
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
-      const name = form.name.value;
-      const email = form.email.value;
+      const name = form.name.value.trim();
+      const email = form.email.value.trim();
       const password = form.password.value;
 
       try {
         const res = await fetch('http://localhost:3000/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password })
+          body: JSON.stringify({ name, email, password, role: 'user' })
         });
 
         const data = await res.json();
@@ -117,11 +109,11 @@
           alert(data.message);
           window.location.href = 'login.html';
         } else {
-          alert(data.message);
+          alert(data.message || 'Registration failed');
         }
       } catch (err) {
-        console.error("❌ Registration error:", err);
-        alert("Something went wrong. Please try again.");
+        console.error('❌ Registration error:', err);
+        alert('Something went wrong. Please try again.');
       }
     });
   </script>

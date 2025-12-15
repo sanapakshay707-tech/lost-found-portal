@@ -2,170 +2,131 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>User Dashboard | Lost & Found</title>
+  <title>Home | Lost & Found Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     body {
+      margin: 0;
       font-family: 'Inter', sans-serif;
-      background: #1e1e2f;
+      background: linear-gradient(135deg, #1e1e2f, #2a2a40);
       color: #fff;
-      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
     }
+
     h2 {
-      color: #00c6ff;
+      font-size: 2.5rem;
+      margin-bottom: 40px;
+      background: linear-gradient(90deg, #ff6a00, #ee0979);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 25px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      transform-style: preserve-3d;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: rotateY(8deg) rotateX(4deg) scale(1.05);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 1.4rem;
+      color: #ff6a00;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 1rem;
+      color: #ccc;
+    }
+
+    .nav {
       margin-bottom: 20px;
     }
-    form {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 10px;
-      padding: 20px;
-      max-width: 400px;
-      margin-bottom: 30px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      border: none;
-      font-size: 1rem;
-    }
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+
+    .nav a {
+      color: #ff6a00;
+      text-decoration: none;
       font-weight: bold;
-      background: linear-gradient(135deg, #00c6ff, #0072ff);
-      color: #fff;
+      margin: 0 15px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    th, td {
-      padding: 12px;
-      border: 1px solid rgba(255,255,255,0.2);
-      text-align: left;
-    }
-    th {
-      background: rgba(0, 198, 255, 0.2);
-    }
-    .logout {
-      background: #ff9800;
-      color: #fff;
-      margin-top: 20px;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
+
+    .nav a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h2>📋 User Dashboard</h2>
-  <p>Submit a new claim or view your claim history.</p>
-<form id="claimForm" enctype="multipart/form-data">
-  <input type="text" id="item" placeholder="Item name" required />
-  <textarea id="description" placeholder="Description" required></textarea>
-  <input type="file" id="image" accept="image/*" />
-  <button type="submit">Submit Claim</button>
-</form>
+  <div class="nav">
+    <a href="feed.html">📜 Feed</a>
+    <a href="login.html" onclick="logout()">🚪 Logout</a>
+  </div>
 
+  <h2>🏠 Welcome to Lost & Found</h2>
 
-const res = await fetch('http://localhost:3000/api/my-claims', {
-  headers: { Authorization: `Bearer ${token}` }
-});
-
-  <!-- Claim history table -->
-  <table id="claimsTable">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Description</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <button class="logout" onclick="logout()">Logout</button>
+  <div class="dashboard" id="dashboard"></div>
 
   <script>
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
-
-    // Protect page
-    if (!token || role !== 'user') {
-      alert("Access denied. Users only.");
-      window.location.href = "login.html";
-    }
-
-    // Submit new claim
-    document.getElementById('claimForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const item = document.getElementById('item').value;
-      const description = document.getElementById('description').value;
-
-      try {
-        const res = await fetch('http://localhost:3000/api/claim', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ item, description })
-        });
-
-        const data = await res.json();
-        alert(data.message);
-        fetchClaims(); // refresh table
-      } catch (err) {
-        console.error("❌ Error submitting claim:", err);
-        alert("Failed to submit claim.");
-      }
-    });
-
-    // Fetch user's claims
-    async function fetchClaims() {
-      try {
-        const res = await fetch('http://localhost:3000/api/my-claims', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const claims = await res.json();
-
-        const tbody = document.querySelector('#claimsTable tbody');
-        tbody.innerHTML = '';
-
-        claims.forEach(claim => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${claim.item}</td>
-            <td>${claim.description || ''}</td>
-            <td>${claim.status}</td>
-          `;
-          tbody.appendChild(row);
-        });
-      } catch (err) {
-        console.error("❌ Error fetching claims:", err);
-        alert("Failed to load claims.");
-      }
-    }
-
-    // Logout
     function logout() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-      window.location.href = "login.html";
+      localStorage.clear();
+      alert("Logged out successfully");
     }
 
-    // Initial load
-    fetchClaims();
+    // Dynamically build dashboard based on role
+    const role = localStorage.getItem('role');
+    const dashboard = document.getElementById('dashboard');
+
+    let cards = `
+      <div class="card" onclick="location.href='feed.html'">
+        <h3>📜 View Feed</h3>
+        <p>Browse all reported lost and found items.</p>
+      </div>
+
+      <div class="card" onclick="location.href='report-lost.html'">
+        <h3>🔎 Report Lost</h3>
+        <p>Submit details of an item you lost.</p>
+      </div>
+
+      <div class="card" onclick="location.href='report-found.html'">
+        <h3>🎉 Report Found</h3>
+        <p>Share details of an item you found.</p>
+      </div>
+    `;
+
+    if (role === 'admin') {
+      cards += `
+        <div class="card" onclick="location.href='admin-dashboard.html'">
+          <h3>⚙️ Admin Dashboard</h3>
+          <p>Moderate claims and manage users.</p>
+        </div>
+      `;
+    }
+
+    dashboard.innerHTML = cards;
   </script>
 </body>
 </html>
